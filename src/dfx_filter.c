@@ -11,8 +11,8 @@
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #define _USE_MATH_DEFINES

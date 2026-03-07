@@ -1,6 +1,6 @@
 /*!
  *  \file   dfx_gradient_demo.c
- *  \brief  An example generating gray-scale gradient images, explaining the differences between linear and sRGB spaces.
+ *  \brief  An example generating gray-scale gradient images, illustrating the differences between the linear RGB and gamma-companded spaces.
  * 
  *  This example generates test images, convertes them to sRGB space an saves them as bitmap files.
  *  This example also shows that 8-bit sRGB format has some limitations. The straightforward rounding to 8-bit valies produces 
@@ -10,8 +10,8 @@
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #include <stdio.h>
@@ -25,7 +25,7 @@
   *  \param[in]      width   - image width in pixels;
   *  \param[in]      height  - image height in pixels;
   *  \param[in]      p       - padding parameter
-  *  \param[in]		 gamma   - gamma indicator 
+  *  \param[in]		 gamma   - gamma indicator (0 - linear, 1 - power-2.2-law)
   *
   *  \return         DFX_SUCCESS if success, or an error code otherwise.
   */
@@ -57,9 +57,8 @@ static int generate_gradient(float* Y, int width, int height, int p, int gamma)
 	return DFX_SUCCESS;
 }
 
-
 /*!
- *  \brief An example generating gray-scale gradient images, explaining the conversion between linear and sRGB spaces.
+ *  \brief DFX: Gray-scale gradient demo program.
  */
 int main()
 {
@@ -86,7 +85,7 @@ int main()
 	}
 
 	/*
-	 * 1st experiment: linear gradient:
+	 * Generate linear gradient:
 	 */
 
 	/* generate linear gradient luminance image: */
@@ -104,7 +103,7 @@ int main()
 	write_bitmap("linear_gradient_diffused.bmp", sRGB, width, height, ppm_x, ppm_y);
 
 	/* 
-	 * 2nd experiment: power-2.2 gradient: 
+	 * Generate power-2.2-law-companded gradient: 
 	 */
 
 	/* generate power-2.2 gradient luminance image: */

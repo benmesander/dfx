@@ -6,8 +6,8 @@
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #include <stdio.h>
@@ -108,22 +108,23 @@ int free_image(float* R, float* G, float* B)
 
 /**************
  *
- *  Zero & copy operations:
+ *  Zero & unit initializations:
  *
  *   zero_plane()
  *   zero_image()
- *   copy_plane()
- *   copy_image()
+ * 
+ *   unit_plane()
+ *   unit_image()
  */
 
-/*!
- *  \brief Fill channel of linear RGB image with zeros.
- */
+ /*!
+  *  \brief Fill channel of linear RGB image with zeros.
+  */
 int zero_plane(float* X, int width, int height, int p)
 {
-	unsigned int size = plane_size(width, height, p); 
+	unsigned int size = plane_size(width, height, p);
 	if (X == NULL || height < 0 || width < 0 || p < 0) return DFX_INVARG;
-	/* setting all bytes to 0 is equivalent to assigning positive floating-point 0s */
+	/* set everything to 0s */
 	memset((void*)X, 0, size * sizeof(float));
 	return DFX_SUCCESS;
 }
@@ -141,12 +142,68 @@ int zero_image(float* R, float* G, float* B, int width, int height, int p)
 }
 
 /*!
+ *  \brief Fill channel of linear RGB image with ones.
+ */
+int unit_plane(float* X, int width, int height, int p)
+{
+	int width_p = width + 2 * p;	/* width of padded plane */
+	int height_p = height + 2 * p;	/* height of padded plane */
+	int x, y;
+	
+	/* check parameters: */
+	if (X == NULL || height < 0 || width < 0 || p < 0) 
+		return DFX_INVARG;
+
+	/* set everything to 1s: */
+	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++) 
+		X[y * width_p + x] = 1.0f;
+
+	/* success: */
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Fill linear RGB image with ones.
+ */
+int unit_image(float* R, float* G, float* B, int width, int height, int p)
+{
+	/* check parameters: */
+	if (R == NULL || G == NULL || B == NULL || height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* initialize planes: */
+	unit_plane(R, width, height, p);
+	unit_plane(G, width, height, p);
+	unit_plane(B, width, height, p);
+	return DFX_SUCCESS;
+}
+
+/************** 
+ *
+ *  Copy, scale, add, subtract, and blend images:
+ * 
+ *   copy_plane()
+ *   copy_image()
+ *   scale_plane()
+ *   scale_image()
+ *   add_planes()
+ *   add_images()
+ *   subtract_planes()
+ *   subtract_images()
+ *   blend_planes()
+ *   blend_images()
+ */
+
+/*!
  *  \brief Copy channel/plain of a linear RGB image.
  */
 int copy_plane(float* X_in, float* X_out, int width, int height, int p)
 {
 	unsigned int size = plane_size(width, height, p);
+
+	/* check parameters: */
 	if (X_in == NULL || X_out == NULL || height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* copy plane: */
 	memcpy((void*)X_out, (void*)X_in, size * sizeof(float));
 	return DFX_SUCCESS;
 }
@@ -156,12 +213,167 @@ int copy_plane(float* X_in, float* X_out, int width, int height, int p)
  */
 int copy_image(float* R_in, float* G_in, float* B_in, float* R_out, float* G_out, float* B_out, int width, int height, int p)
 {
+	/* check parameters: */
 	if (R_in == NULL || G_in == NULL || B_in == NULL) return DFX_INVARG;
 	if (R_out == NULL || G_out == NULL || B_out == NULL) return DFX_INVARG;
 	if (height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* copy planes: */
 	copy_plane(R_in, R_out, width, height, p);
 	copy_plane(G_in, G_out, width, height, p);
 	copy_plane(B_in, B_out, width, height, p);
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Scale channel of linear RGB image by a constant.
+ */
+int scale_plane(float* X_in, float* X_out, int width, int height, int p, float scale)
+{
+	int width_p = width + 2 * p;	/* width of padded plane */
+	int height_p = height + 2 * p;	/* height of padded plane */
+	int x, y;
+
+	/* check parameters: */
+	if (X_in == NULL || X_out == NULL || height < 0 || width < 0 || p < 0) 
+		return DFX_INVARG;
+
+	/* scale image: */
+	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
+		X_out[y * width_p + x] = X_in[y * width_p + x] * scale;
+
+	/* success: */
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Scale linear RGB image by a constant.
+ */
+int scale_image(float* R_in, float* G_in, float* B_in, float* R_out, float* G_out, float* B_out, int width, int height, int p, float scale)
+{
+	/* check parameters: */
+	if (R_in == NULL || G_in == NULL || B_in == NULL) return DFX_INVARG;
+	if (R_out == NULL || G_out == NULL || B_out == NULL) return DFX_INVARG;
+	if (height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* scale planes: */
+	scale_plane(R_in, R_out, width, height, p, scale);
+	scale_plane(G_in, G_out, width, height, p, scale);
+	scale_plane(B_in, B_out, width, height, p, scale);
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Add two linear RGB image planes.
+ */
+int add_planes(float* X_1, float* X_2, float* X_out, int width, int height, int p)
+{
+	int width_p = width + 2 * p;	/* width of padded plane */
+	int height_p = height + 2 * p;	/* height of padded plane */
+	int x, y;
+
+	/* check parameters: */
+	if (X_1 == NULL || X_2 == NULL || X_out == NULL || height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* add two images: */
+	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
+		X_out[y * width_p + x] = X_1[y * width_p + x] + X_2[y * width_p + x];
+
+	/* success: */
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Add two linear RGB images.
+ */
+int add_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, float* B_2, float* R_out, float* G_out, float* B_out, int width, int height, int p)
+{
+	/* check parameters: */
+	if (R_1 == NULL || G_1 == NULL || B_1 == NULL) return DFX_INVARG;
+	if (R_2 == NULL || G_2 == NULL || B_2 == NULL) return DFX_INVARG;
+	if (R_out == NULL || G_out == NULL || B_out == NULL) return DFX_INVARG;
+	if (height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* add planes: */
+	add_planes(R_1, R_2, R_out, width, height, p);
+	add_planes(G_1, G_2, G_out, width, height, p);
+	add_planes(B_1, B_2, B_out, width, height, p);
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Subtract two linear RGB image planes.
+ */
+int subtract_planes(float* X_1, float* X_2, float* X_out, int width, int height, int p)
+{
+	int width_p = width + 2 * p;	/* width of psubtracted plane */
+	int height_p = height + 2 * p;	/* height of psubtracted plane */
+	int x, y;
+
+	/* check parameters: */
+	if (X_1 == NULL || X_2 == NULL || X_out == NULL || height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* subtract two images: */
+	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
+		X_out[y * width_p + x] = X_1[y * width_p + x] + X_2[y * width_p + x];
+
+	/* success: */
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Subtract two linear RGB images.
+ */
+int subtract_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, float* B_2, float* R_out, float* G_out, float* B_out, int width, int height, int p)
+{
+	/* check parameters: */
+	if (R_1 == NULL || G_1 == NULL || B_1 == NULL) return DFX_INVARG;
+	if (R_2 == NULL || G_2 == NULL || B_2 == NULL) return DFX_INVARG;
+	if (R_out == NULL || G_out == NULL || B_out == NULL) return DFX_INVARG;
+	if (height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* subtract planes: */
+	subtract_planes(R_1, R_2, R_out, width, height, p);
+	subtract_planes(G_1, G_2, G_out, width, height, p);
+	subtract_planes(B_1, B_2, B_out, width, height, p);
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Blend two linear RGB image planes.
+ */
+int blend_planes(float* X_1, float* X_2, float* X_out, int width, int height, int p, float alpha)
+{
+	int width_p = width + 2 * p;	/* width of padded plane */
+	int height_p = height + 2 * p;	/* height of padded plane */
+	int x, y;
+
+	/* check parameters: */
+	if (X_1 == NULL || X_2 == NULL || X_out == NULL || height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* blend two images: */
+	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
+		X_out[y * width_p + x] = alpha * X_1[y * width_p + x] + (1.0f - alpha) * X_2[y * width_p + x];
+
+	/* success: */
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Blend two linear RGB images.
+ */
+int blend_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, float* B_2, float* R_out, float* G_out, float* B_out, int width, int height, int p, float alpha)
+{
+	/* check parameters: */
+	if (R_1 == NULL || G_1 == NULL || B_1 == NULL) return DFX_INVARG;
+	if (R_2 == NULL || G_2 == NULL || B_2 == NULL) return DFX_INVARG;
+	if (R_out == NULL || G_out == NULL || B_out == NULL) return DFX_INVARG;
+	if (height < 0 || width < 0 || p < 0) return DFX_INVARG;
+
+	/* add planes: */
+	blend_planes(R_1, R_2, R_out, width, height, p, alpha);
+	blend_planes(G_1, G_2, G_out, width, height, p, alpha);
+	blend_planes(B_1, B_2, B_out, width, height, p, alpha);
 	return DFX_SUCCESS;
 }
 

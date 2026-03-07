@@ -1,6 +1,6 @@
 /*!
  *  \file   dfx_rgb_demo.c
- *  \brief  An example program demonstrating basic operations with RGB images, and bitmap files. 
+ *  \brief  An example demonstrating basic operations with sRGB images and bitmap files. 
  *
  *  This example shows how to split an sRGB image into component images containing its R, G, B, and luminance channels.
  *
@@ -8,8 +8,8 @@
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #include <stdio.h>
@@ -17,7 +17,7 @@
 #include "dfx.h"
 
  /*!
-  *  \brief An example generating gray-scale gradient images, explaining the conversion between linear and sRGB spaces.
+  *  \brief DFX: RGB image demo program.
   */
 int main(int argc, char *argv[])
 {
@@ -30,12 +30,12 @@ int main(int argc, char *argv[])
 
 	/* check parameters and read sRGB image: */
 	if (argc < 2) {
-		printf("Usage: dfx_split_rgb <bitmap image>\n");
+		printf("Usage: dfx_rgb_demo <bitmap image>\n");
 		return 1;
 	}
 	if (read_bitmap(argv[1], &sRGB_in, &width, &height, &ppm_x, &ppm_y) != DFX_SUCCESS) {
 		printf("Cannot open input file: %s\n", argv[1]);
-		printf("This program only works with uncompressed 24-bit RGB bitmap files\n");
+		printf("Only 24-bit RGB bitmap files are supported.\n");
 		return 1;
 	}
 
@@ -96,3 +96,5 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
+/* dfx_rgb_demo.c -- end of file */

@@ -6,22 +6,12 @@
  *  The implementation is limited to 3-channel, 24-bit packed sRGB images. 
  *  Attempts to open bitmap files in any other formats will result in DFX_NOTSUP error.
  * 
- *  This limitation is by design. Varous other forms of bitmap files (e.g. 16-bit bitfield-packed 
- *  formats, palettized images, etc.) exist for historical reasons, and they introduce artifacts 
- *  that sgnificantly impact quality. Instead of trying to support such legacy formats and dealing 
- *  with all the issues that come along with them, we simply reject them.
- *  Our objective is to keep things simple. 
- *  
- *  After reading a bitmap file, we assume that what we read is an 8-bit/channel quantized 
- *  signal, that uses BT.709 RGB primaries and sRGB gamma. Parameters p_ppm_x/p_ppm_y define 
- *  the intended density of each pixel in a way this image should be rendered. 
- *
  *  Copyright (c) 2026 Yuriy A. Reznik
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #define _CRT_SECURE_NO_WARNINGS

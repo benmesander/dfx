@@ -24,14 +24,18 @@
  *      W.-H. Chen, C. Smith and S. Fralick, "A Fast Computational Algorithm for the Discrete Cosine Transform," IEEE Trans. Communications, vol. 25, no. 9, pp. 1004-1009, 1977
  *      Z. Wang, On Computing the Discrete Fourier and Cosine Transforms, IEEE Trans. ASSP, Vol 33, No. 4, Oct. 1985.
  *      G.Plonka and M.Tashe, "Fast and numerically stable algorithms for discrete cosine transforms", Linear Algebra and Applications, 394 (1) 309-345 (2005). 
+ *      R. Joshi, Y. Reznik, and M. Karczewicz, "Efficient large size transforms for high-performance video coding", Proc. SPIE Vol. 7798, pp. 779831-1--7, 2010.
  *      V. Britanak, P. Yip, K. R. Rao, "Discrete Cosine and Sine Transforms: General Properties, Fast Algorithms and Integer Approximations", Academic Press, 2006.
+ *    Recursive non-dyadic factorizations:
+ *      Y. Reznik and R. K. Chivukula, "Design of fast transforms for high-resolution image and video coding", Proc. SPIE Vol. 7443, pp. 744312-1--18, 2009.
+ *      Y. Reznik, "Relationship Between DCT-II, DCT-VI, and DST-VII Transforms," ICASSP, pp. 5642-5646, 2013.
  * 
  *  Copyright (c) 2026 Yuriy A. Reznik
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #define _USE_MATH_DEFINES
@@ -621,13 +625,6 @@ static void dct4_15(float* x)
  *
  *    dct4_rec(float* x, float* y, int n, int n_min);
  *    dct2_rec(float* x, float* y, int n, int n_min);
- *
- *  This recursion is similar to the one described in:
- *      G.Plonka and M.Tashe, "Fast and numerically stable algorithms for discrete cosine transforms",
- *      Linear Algebra and Applications, 394 (1) 309-345 (2005).
- *
- *  This version is generalized to support non-dyadic transform lengths. The resulting transforms are unnormalized.  
- *  This factorization is numerically stable, and allows computation of large-size transforms.
  */
 
 int dct2_rec(float *x, float *y, int n);
@@ -636,6 +633,9 @@ int dct4_rec(float *x, float *y, int n);
 /*!
  *  \brief Recursive DCT-II of lengths n = 2 ^ m * n1, where n1 = 3, 4, 5, 7, 9, 15.
  *
+ *  This function recursively splits DCT-II into computation of DCT-II and DCT-VI of half sizes. 
+ *  This is a classic Chen-Smith-Fralick split of the DCT-II transform. 
+ * 
  *  \param[in, out]  x - vector to be transformed
  *  \param[out]      y - temp buffer
  *  \param[in]       n - transform size
@@ -644,7 +644,6 @@ int dct4_rec(float *x, float *y, int n);
  */
 int dct2_rec(float *x, float* y, int n)
 {
-
     /* check if split is possible: */
     if (!(n & 1) && n > 4)
     {
@@ -667,35 +666,17 @@ int dct2_rec(float *x, float* y, int n)
         for (i = 0; i < n1; i++)
             x[2 * i + 1] = y[n1 + i];
     }
-    /* check if we can use one of our small-size transforms: */
-    else if (n == 15)
-    {
-        dct2_15(x);
-    }
-    else if (n == 9)
-    {
-        dct2_9(x);
-    }
-    else if (n == 7)
-    {
-        dct2_7(x);
-    }
-    else if (n == 5)
-    {
-        dct2_5(x);
-    }
-    else if (n == 4)
-    {
-        dct2_4(x);
-    }
-    else if (n == 3)
-    {
-        dct2_3(x);
-    }
-    else
-    {
-        /* unsupported transform size */
-        return 1;
+    else {
+        /* check if we can use one of our small-size transforms: */
+        switch (n) {
+        case 3:  dct2_3(x);  break;
+        case 4:  dct2_4(x);  break;
+        case 5:  dct2_5(x);  break;
+        case 7:  dct2_7(x);  break;
+        case 9:  dct2_9(x);  break;
+        case 15: dct2_15(x); break;
+        default: return 1;  /* unsupported transform size */
+        }
     }
 
     /* success:*/
@@ -705,6 +686,9 @@ int dct2_rec(float *x, float* y, int n)
  /*!
   *  \brief Recursive DCT-IV of lengths n = 2^m * n1, where n1 = 3,4,5,7,9,15.
   *
+  *  This function recursively splits DCT-IV into computation of two DCT-II transforms of half sizes. 
+  *  This algorithm is a based on Plonka-Tashe factorization, adapted to unnormalized transforms. 
+  * 
   *  \param[in,out]  x - vector to be transformed
   *  \param[out]     y - temp buffer
   *  \param[in]      n - transform size
@@ -760,35 +744,17 @@ int dct4_rec(float* x, float* y, int n)
         for (i = 0; i < n1; i++)
             x[2 * i + 1] = y[n1 + i];
     }
-    /* check if we can use one of our small-size transforms: */
-    else if (n == 15)
-    {
-        dct4_15(x);
-    }
-    else if (n == 9)
-    {
-        dct4_9(x);
-    }
-    else if (n == 7)
-    {
-        dct4_7(x);
-    }
-    else if (n == 5)
-    {
-        dct4_5(x);
-    }
-    else if (n == 4)
-    {
-        dct4_4(x);
-    }
-    else if (n == 3)
-    {
-        dct4_3(x);
-    }
-    else
-    {
-        /* unsupported transform size */
-        return 1;
+    else {
+        /* check if we can use one of our small-size transforms: */
+        switch (n) {
+        case 3:  dct4_3(x);  break;
+        case 4:  dct4_4(x);  break;
+        case 5:  dct4_5(x);  break;
+        case 7:  dct4_7(x);  break;
+        case 9:  dct4_9(x);  break;
+        case 15: dct4_15(x); break;
+        default: return 1;  /* unsupported transform size */
+        }
     }
 
     /* success:*/

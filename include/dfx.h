@@ -6,7 +6,7 @@
  *  implemented entirely in C, without relying on external libraries.
  *
  *  •  read_bitmap() and write_bitmap() load and store 24‑bit packed sRGB images.
- *     In memory, these images are represented as arrays of unsigned chars.
+ *     In memory, these images are stored as arrays of unsigned chars.
  *     The parameters “width” and “height” specify the image dimensions.
  *
  *  •  srgb_to_linear() and linear_to_srgb() convert between sRGB and linear RGB.
@@ -40,8 +40,8 @@
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  * 
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #ifndef _DFX_H_
@@ -93,15 +93,27 @@ extern int free_plane(float* X);
 extern int alloc_image(float** pR, float** pG, float** pB, int width, int height, int p);
 extern int free_image(float* R, float* G, float* B);
 
-/* Zero & copy functions: */
+/* Initialization functions: */
 extern int zero_plane(float* X, int width, int height, int p);
 extern int zero_image(float* R, float* G, float* B, int width, int height, int p);
-extern int copy_plane(float* X_in, float* X_out, int width, int height, int p);
-extern int copy_image(float* R_in, float* G_in, float* B_in, float* R_out, float* G_out, float* B_out, int width, int height, int p);
+extern int unit_plane(float* X, int width, int height, int p);
+extern int unit_image(float* R, float* G, float* B, int width, int height, int p);
 
 /* Padding functions: */
 extern int pad_plane(float* X, int width, int height, int p, int padding_type);
 extern int pad_image(float* R, float* G, float* B, int width, int height, int p, int padding_type);
+
+/* Copy, scale, add, subtract, and blend operations: */
+extern int copy_plane(float* X_in, float* X_out, int width, int height, int p);
+extern int copy_image(float* R_in, float* G_in, float* B_in, float* R_out, float* G_out, float* B_out, int width, int height, int p);
+extern int scale_plane(float* X_in, float* X_out, int width, int height, int p, float scale);
+extern int scale_image(float* R_in, float* G_in, float* B_in, float* R_out, float* G_out, float* B_out, int width, int height, int p, float scale);
+extern int add_planes(float* X_1, float* X_2, float* X_out, int width, int height, int p);
+extern int add_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, float* B_2, float* R_out, float* G_out, float* B_out, int width, int height, int p);
+extern int subtract_planes(float* X_1, float* X_2, float* X_out, int width, int height, int p);
+extern int subtract_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, float* B_2, float* R_out, float* G_out, float* B_out, int width, int height, int p);
+extern int blend_planes(float* X_1, float* X_2, float* X_out, int width, int height, int p, float alpha);
+extern int blend_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, float* B_2, float* R_out, float* G_out, float* B_out, int width, int height, int p, float alpha);
 
 /* Conversions between sRGB and linear RGB: */
 extern int srgb_to_linear(unsigned char* sRGB, float* R, float* G, float* B, int width, int height, int p);

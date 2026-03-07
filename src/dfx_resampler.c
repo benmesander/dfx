@@ -3,22 +3,16 @@
  *  \brief  DFX library: image resampling functions
  * 
  *  This module implements separable, polyphase-filter-based resampler. 
- *  The implementation is very basic and intends only to explain the principles. 
- * 
- *  A good read on polyphase filter design is:
+ *  It follows the design explained in:  
  *   R. E. Crochiere, and L. R. Rabiner, "Interpolation and decimation of digital 
  *   signals — A tutorial review," Proc. IEEE 69, no. 3, 2005, pp. 300-331.
- *
- *  I mostly follow this paper, adding a specific design of the low-pass filter, 
- *  and some other small details. Everything is done in linear space, floats, 
- *  and padding reserved in input and output images.
  * 
  *  Copyright (c) 2026 Yuriy A. Reznik
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #define _USE_MATH_DEFINES
@@ -121,7 +115,7 @@ static int apply_gain(float* w, int n, float gain)
 
     /* compute current gain: */
     for (x = -n, s = 0.; x <= n; x++) s += w[n + x];
-    /* force new gain: */
+    /* apply new gain: */
     for (x = -n; x <= n; x++) w[n + x] *= (float)(gain / s);
 
     /* success */
@@ -144,7 +138,7 @@ static int apply_gain(float* w, int n, float gain)
  */
 static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
 {
-    float *w = NULL, *W = NULL, fc, gain;
+    float *w = NULL, *W = NULL, fc;
     int i, j, k, phase, M, N;
 
     /* check args: */
@@ -156,9 +150,8 @@ static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
     M = dim_out / k;
     N = dim_in / k;
 
-    /* set cutoff and gain: */
+    /* set cutoff: */
     fc = (M < N) ? 0.5f / (float)N : 0.5f / (float)M; 
-    gain = (float)M;
 
     /* generate filter coefficients: */
     if (gen_coeffs(&w, M * n, fc) != DFX_SUCCESS)
@@ -182,8 +175,12 @@ static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
         for (; j < M * 2 * n + 1; j += M, i++)
             W[phase*(2*n+1) + i] = w[j];
 
-        /* apply gain: */
-        apply_gain(&W[phase * (2*n + 1)], n, 1);
+        /* apply filter gain: this operation is equivalent to setting the overall filter gain to M, 
+		 * and then sub-sampling coefficients to M phases. However, with short filter legths the 
+		 * subsampling of filter coefficients can cause significant gain changes on per-phase level.
+		 * To minimize such effects, we apply gains on per-phase level, coupled with the
+         * normalization of each filter. */
+        apply_gain(&W[phase * (2*n + 1)], n, 1.0f); 
     }
 
     /* success: */

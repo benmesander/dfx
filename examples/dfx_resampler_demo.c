@@ -1,13 +1,13 @@
 /*!
  *  \file   dfx_resampler_demo.c
- *  \brief  An example program, demonstrating how to use image resampling functions.
+ *  \brief  An example demonstrating how to use image resampling functions.
  *
  *  Copyright (c) 2026 Yuriy A. Reznik
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #include <stdio.h>

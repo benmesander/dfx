@@ -6,8 +6,8 @@
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
  *  \author  Yuriy A. Reznik
- *  \version 1.0
- *  \date    February 20, 2026
+ *  \version 1.01
+ *  \date    March 7, 2026
  */
 
 #define _USE_MATH_DEFINES
@@ -36,6 +36,7 @@ int main(int argc, char* argv[])
 	}
 	if (read_bitmap(argv[1], &sRGB_in, &width, &height, &ppm_x, &ppm_y) != DFX_SUCCESS) {
 		printf("Cannot open input file: %s\n", argv[1]);
+		printf("Only 24-bit RGB bitmap files are supported.\n");
 		return 1;
 	}
 
