@@ -31,7 +31,7 @@
   */
 static int generate_gradient(float* Y, int width, int height, int p, int gamma)
 {
-	float L;
+	float dx, dy, L;
 	int x, y;
 
 	/* check args: */
@@ -42,7 +42,9 @@ static int generate_gradient(float* Y, int width, int height, int p, int gamma)
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
 			/* produce luminance as a linear function of x and y */
-			L = ((float)x / (width - 1)) + ((float)y / (height - 1)) / 2.0f;
+			dx = (float)x / (width - 1);
+			dy = (float)y / (height - 1);
+			L = sqrtf((dx*dx + dy*dy)/2);   /* distance from 0,0, normalized to [0,1] range */
 			if (gamma) {
 				/* apply pow-2.2 gamma: */
 				L = powf(L, 2.2f);
