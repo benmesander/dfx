@@ -1,4 +1,6 @@
 # dfx
+DFX: Digital image processing Functions and eXamples
+
 This library provides a collection of basic image‑processing primitives implemented entirely in C, without relying on external libraries.
 
 * read_bitmap() and write_bitmap() load and store 24‑bit packed sRGB images. In memory, these images are represented as arrays of unsigned chars. The parameters “width” and “height” specify the image dimensions.
