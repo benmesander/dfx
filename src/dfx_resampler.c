@@ -311,16 +311,16 @@ int resample_plane(float* X, float* Y, int width_in, int height_in, int width_ou
 
     /* resample rows, including extra +-n rows in the padded region to support subsequent vertical processing: */
     for (y = -n; y < height_in + n; y++) {
-        /* call 1D filter (convolution) function on each row: */
+        /* call 1D resamplers for each row: */
         polyphase_filter_row(
             &X[(y + p) * (width_in + 2 * p) + p],
             &Z[(y + p) * (width_out + 2 * p) + p],
             width_in, width_out, n, W_row);
     }
 
-    /* filter columns: */
+    /* resample columns: */
     for (x = 0; x < width_out; x++) {
-        /* call 1D filter (convolution) function on each column: */
+        /* call 1D resampler for each column: */
         polyphase_filter_col(
             &Z[p * (width_out + 2 * p) + x + p],
             &Y[p * (width_out + 2 * p) + x + p],
