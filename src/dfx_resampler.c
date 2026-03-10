@@ -152,8 +152,7 @@ static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
 
     /* set cutoff: */
     fc = (M < N) ? 0.5f / (float)N : 0.5f / (float)M; 
-    //printf("fc = %g\n", fc);
-
+ 
     /* generate filter coefficients: */
     if (gen_coeffs(&w, M * n, fc) != DFX_SUCCESS)
         return DFX_NOMEM;
@@ -176,11 +175,11 @@ static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
         for (; j < M * 2 * n + 1; j += M, i++)
             W[phase*(2*n+1) + i] = w[j];
 
-        /* apply filter gain: this operation is equivalent to setting the overall filter gain to M, 
-		 * and then sub-sampling coefficients to M phases. However, with short filter legths the 
-		 * subsampling of filter coefficients can cause significant gain changes on per-phase level.
-		 * To minimize such effects, we apply gains on per-phase level, coupled with the
-         * normalization of each filter. */
+        /* By books, I should set the overall filter gain to M, and then 
+         * sub-sample the coefficients to M phases. However, with short filter legths 
+         * (and truncated sinc-type filters) this causes some fluctuations of the 
+         * filer gains on phase-level. To minimize such effects, I apply gain 
+         * on per-phase level, which unifies gains of all filters. */
         apply_gain(&W[phase * (2*n + 1)], n, 1.0f); 
     }
 
