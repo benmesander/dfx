@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
 
 	/* allocate working images and planes: */
 	if (alloc_srgb_image(&sRGB_out, width, height) != DFX_SUCCESS
-		|| alloc_image(&R_in, &G_in, &B_in, width, height, p) != DFX_SUCCESS
-		|| alloc_image(&R_out, &G_out, &B_out, width, height, p) != DFX_SUCCESS) {
+	 || alloc_image(&R_in, &G_in, &B_in, width, height, p) != DFX_SUCCESS
+	 || alloc_image(&R_out, &G_out, &B_out, width, height, p) != DFX_SUCCESS) {
 		printf("Error: cannot allocate memory for images\n");
 		/* free memory and exit: */
 		if (sRGB_in != NULL) free_srgb_image(sRGB_in);
@@ -69,25 +69,25 @@ int main(int argc, char* argv[])
 
 	/* convert to linear RGB: */
 	srgb_to_linear(sRGB_in, R_in, G_in, B_in, width, height, p);
-	linear_to_srgb(sRGB_out, R_in, G_in, B_in, width, height, p);
+	linear_to_srgb(R_in, G_in, B_in, sRGB_out, width, height, p);
 	write_bitmap("dfx_filter_original.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* apply Gaussian filter: */
 	zero_image(R_out, G_out, B_out, width, height, p);
 	filter_image(R_in, G_in, B_in, R_out, G_out, B_out, width, height, p, n, FILT_GAUSS, fc);
-	linear_to_srgb(sRGB_out, R_out, G_out, B_out, width, height, p);
+	linear_to_srgb(R_out, G_out, B_out, sRGB_out, width, height, p);
 	write_bitmap("dfx_filter_gauss.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* apply sinc filter: */
 	zero_image(R_out, G_out, B_out, width, height, p);
 	filter_image(R_in, G_in, B_in, R_out, G_out, B_out, width, height, p, n, FILT_SINC, fc);
-	linear_to_srgb(sRGB_out, R_out, G_out, B_out, width, height, p);
+	linear_to_srgb(R_out, G_out, B_out, sRGB_out, width, height, p);
 	write_bitmap("dfx_filter_sinc.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* apply Lanczos filter: */
 	zero_image(R_out, G_out, B_out, width, height, p);
 	filter_image(R_in, G_in, B_in, R_out, G_out, B_out, width, height, p, n, FILT_LANCZOS, fc);
-	linear_to_srgb(sRGB_out, R_out, G_out, B_out, width, height, p);
+	linear_to_srgb(R_out, G_out, B_out, sRGB_out, width, height, p);
 	write_bitmap("dfx_filter_lanczos.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* free memory and exit: */

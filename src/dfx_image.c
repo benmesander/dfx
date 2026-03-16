@@ -1,7 +1,15 @@
 /*!
  *  \file   dfx_image.c
- *  \brief  DFX library: basic operations with linear RGB images
+ *  \brief  Basic operations with linear RGB images. 
  *
+ *  We use planar format for linear RGB images, where each channel is stored in a separate plane. 
+ *  Each plane is allocated as a single block of memory, containnig pixel values in row-major order, 
+ *  with padding around the boundary.
+ * 
+ *  This is a preferred format for image filtering, blending, and resampling operations. 
+ *  By Grassmann's laws of color mixing, all such operations on linear RGB images can be performed 
+ *  independently in each channel.
+ * 
  *  Copyright (c) 2026 Yuriy A. Reznik
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
@@ -44,13 +52,22 @@ static unsigned int plane_size(int width, int height, int p)
  *  \param[in]      width  - image width
  *  \param[in]      p      - padding parameter
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 int alloc_plane(float** pX, int width, int height, int p)
 {
 	unsigned int size = plane_size(width, height, p);
 	if (pX == NULL || height < 0 || width < 0 || p < 0)  return DFX_INVARG;
 	if ((*pX = (float*)malloc(size * sizeof(float))) == NULL) return DFX_NOMEM;
+	return DFX_SUCCESS;
+}
+
+/*!
+ *  \brief Free image plane.
+ */
+int free_plane(float* X)
+{
+	if (X != NULL) free(X);
 	return DFX_SUCCESS;
 }
 
@@ -62,7 +79,7 @@ int alloc_plane(float** pX, int width, int height, int p)
  *  \param[in]      width  - image width
  *  \param[in]      p      - padding parameter
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 int alloc_image(float** pR, float** pG, float** pB, int width, int height, int p)
 {
@@ -81,17 +98,8 @@ int alloc_image(float** pR, float** pG, float** pB, int width, int height, int p
 		return DFX_NOMEM;
 	}
 
-	/* success: */
+	/* pass pointers & exit: */
 	*pR = R; *pG = G; *pB = B;
-	return DFX_SUCCESS;
-}
-
-/*!
- *  \brief Free image plane.
- */
-int free_plane(float* X)
-{
-	if (X != NULL) free(X);
 	return DFX_SUCCESS;
 }
  
@@ -158,7 +166,7 @@ int unit_plane(float* X, int width, int height, int p)
 	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++) 
 		X[y * width_p + x] = 1.0f;
 
-	/* success: */
+
 	return DFX_SUCCESS;
 }
 
@@ -242,7 +250,6 @@ int scale_plane(float* X_in, float* X_out, int width, int height, int p, float s
 	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
 		X_out[y * width_p + x] = X_in[y * width_p + x] * scale;
 
-	/* success: */
 	return DFX_SUCCESS;
 }
 
@@ -279,7 +286,6 @@ int add_planes(float* X_1, float* X_2, float* X_out, int width, int height, int 
 	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
 		X_out[y * width_p + x] = X_1[y * width_p + x] + X_2[y * width_p + x];
 
-	/* success: */
 	return DFX_SUCCESS;
 }
 
@@ -317,7 +323,6 @@ int subtract_planes(float* X_1, float* X_2, float* X_out, int width, int height,
 	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
 		X_out[y * width_p + x] = X_1[y * width_p + x] + X_2[y * width_p + x];
 
-	/* success: */
 	return DFX_SUCCESS;
 }
 
@@ -355,7 +360,6 @@ int blend_planes(float* X_1, float* X_2, float* X_out, int width, int height, in
 	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
 		X_out[y * width_p + x] = alpha * X_1[y * width_p + x] + (1.0f - alpha) * X_2[y * width_p + x];
 
-	/* success: */
 	return DFX_SUCCESS;
 }
 
@@ -369,6 +373,7 @@ int blend_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, flo
 	if (R_2 == NULL || G_2 == NULL || B_2 == NULL) return DFX_INVARG;
 	if (R_out == NULL || G_out == NULL || B_out == NULL) return DFX_INVARG;
 	if (height < 0 || width < 0 || p < 0) return DFX_INVARG;
+	if (alpha < 0.f || alpha > 1.0f) return DFX_INVARG;
 
 	/* add planes: */
 	blend_planes(R_1, R_2, R_out, width, height, p, alpha);
@@ -394,7 +399,7 @@ int blend_images(float* R_1, float* G_1, float* B_1, float* R_2, float* G_2, flo
  *  \param[in]      p      - padding parameter
  *  \param[in]      t      - padding type
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 int pad_plane(float* X, int width, int height, int p, int t)
 {
@@ -445,7 +450,6 @@ int pad_plane(float* X, int width, int height, int p, int t)
 		}
 	}
 
-	/* success: */
 	return DFX_SUCCESS;
 }
 
@@ -461,281 +465,4 @@ int pad_image(float* R, float* G, float* B, int width, int height, int p, int t)
 	return DFX_SUCCESS;
 }
 
-/**************
- *
- *  sRGB-related operations:
- *
- *   quant_8bit()
- *   rec_8bit()
- *   to_srgb()
- *   to_linear()
- */
-
-/*!
- *  \brief 8-bit uniform quantizer function:
- */
-static unsigned char quant_8bit(float x)
-{
-	int y = (int)floor(x * 255 + 0.5);
-	if (y < 0) y = 0; else if (y > 255) y = 255;
-	return (unsigned char)y;
-}
-
-/*!
- *  \brief 8-bit uniform quantizer - reconstruction function:
- */
-static float rec_8bit(unsigned char y)
-{
-	float x = (float)y / 255.f;
-	return x;
-}
-
-/*!
- *  \brief Linear to sRGB gamma space conversion:
- */
-static float to_srgb(float x)
-{
-	/* sRGB gamma: */
-	float y = (float)((x > 0.0031308) ? 1.055 * pow(x, 1 / 2.4) - 0.055 : 12.92 * x);
-	return y;
-}
-
-/*!
- *  \brief sRGB gamma to linear space conversion:
- */
-static float to_linear(float y)
-{
-	/* inverse sRGB gamma: */
-	float x = (float)((y > 0.0031308 * 12.92) ? pow((y + 0.055) / 1.055, 2.4) : y / 12.92);
-	return x;
-}
-
-/**************
- *
- *  Frame-level sRGB/linear conversion functions:
- *
- *   srgb_to_linear()
- *   linear_to_srgb()
- *   linear_to_srgb_dithered()
- */
-
- /*!
-  *  \brief Converts an 8-bit-per channel sRGB image to padded linear-space RGB image.
-  *
-  *  Inverse sRGB gamma is applied. RGB primary colors stay the same as in sRGB.
-  *  sRGB image is considered vertically flipped (as per Microsoft's convention in bitmap files)
-  *  Output linear planes are padded to support subsequent filtering operations. 
-  *  The effective size of a padded image is (2*p + height) x (2*p + width), where p is a padding parameter.
-  *
-  *  \param[in]  sRGB   - pointer to an sRGB image
-  *  \param[out] R      - pointer to linear R channel
-  *  \param[out] G      - pointer to linear G channel
-  *  \param[out] B      - pointer to linear B channel
-  *  \param[in]  height - image height
-  *  \param[in]  width  - image width
-  *  \param[in]  p      - padding parameter
-  * 
-  *  \returns    DFX_X error codes
-  */
-int srgb_to_linear(unsigned char* sRGB, float* R, float* G, float* B, int width, int height, int p)
-{
-	int w_srgb = (width * 3 + 3) & (~3);	/* w_srgb = offset to the next line in srgb bitmap image */
-	int w_lin = width + 2 * p;			    /* w_lin = width of padded liner RGB image */
-	int x, y;
-
-	/* check parameters: */
-	if (sRGB == NULL || R == NULL || G == NULL || B == NULL
-	 || height < 0 || width < 0 || p < 0)
-		return DFX_INVARG;
-
-	/* extract R,G,B channels: */
-	for (y = 0; y < height; y++) for (x = 0; x < width; x++)
-	{
-		B[(p + y) * w_lin + p + x] = to_linear(rec_8bit(sRGB[(height-1-y) * w_srgb + x * 3 + 0]));
-		G[(p + y) * w_lin + p + x] = to_linear(rec_8bit(sRGB[(height-1-y) * w_srgb + x * 3 + 1]));
-		R[(p + y) * w_lin + p + x] = to_linear(rec_8bit(sRGB[(height-1-y) * w_srgb + x * 3 + 2]));
-	}
-
-	/* add padding: */
-	pad_image(R, G, B, width, height, p, PAD_REPLICATE);
-
-	/* success: */
-	return DFX_SUCCESS;
-}
-
-/*!
- *  \brief Converts linear-space RGB image to an 8-bit-per channel sRGB representation.
- *
- *  sRGB gamma is applied, and the resulting values quantized to 8-bit outputs.
- *  Padding is removed. The output consists of packed 24bit sRGB values, suitable for writing in a bitmap file.
- *
- *  \param[out] sRGB  - pointer to an sRGB image
- *  \param[in]  R      - pointer to linear R channel
- *  \param[in]  G      - pointer to linear G channel
- *  \param[in]  B      - pointer to linear B channel
- *  \param[in]  height - image height
- *  \param[in]  width  - image width
- *  \param[in]  p      - padding parameter
- *
- *  \returns    DFX_X error codes
- */
-int linear_to_srgb(unsigned char* sRGB, float* R, float* G, float* B, int width, int height, int p)
-{
-	int w_srgb = (width * 3 + 3) & (~3);		/* w_srgb = offset to the next line in bitmap image */
-	int w_lin = 2 * p + width;					/* w_lin = width of padded liner RGB image */
-	int x, y;
-
-	/* check parameters: */
-	if (sRGB == NULL || R == NULL || G == NULL || B == NULL
-		|| height < 0 || width < 0 || p < 0)
-		return DFX_INVARG;
-
-	/* produce sRGB pixel values: */
-	for (y = 0; y < height; y++) for (x = 0; x < width; x++)
-	{
-		sRGB[(height-1-y) * w_srgb + x * 3 + 0] = quant_8bit(to_srgb(B[(p + y) * w_lin + p + x]));
-		sRGB[(height-1-y) * w_srgb + x * 3 + 1] = quant_8bit(to_srgb(G[(p + y) * w_lin + p + x]));
-		sRGB[(height-1-y) * w_srgb + x * 3 + 2] = quant_8bit(to_srgb(R[(p + y) * w_lin + p + x]));
-	}
-
-	/* success: */
-	return DFX_SUCCESS;
-}
-
-/*!
- *  \brief Converts linear-space RGB image to an 8-bit-per channel sRGB representation.
- *
- *  sRGB gamma is applied, and the resulting values quantized to 8-bit outputs.
- *  Banding is minimized by using Floyd-Steinberg-style diffusion of the quantization errors.
- *  Padding is removed. The output consists of packed 24bit sRGB values, suitable for writing in bitmap file.
- *
- *  \param[out] sRGB  - pointer to an sRGB image
- *  \param[in]  R      - pointer to linear R channel
- *  \param[in]  G      - pointer to linear G channel
- *  \param[in]  B      - pointer to linear B channel
- *  \param[in]  height - image height
- *  \param[in]  width  - image width
- *  \param[in]  p      - padding parameter
- *
- *  \returns    DFX_X error codes
- */
-int linear_to_srgb_dithered(unsigned char* sRGB, float* R, float* G, float* B, int width, int height, int p)
-{
-	int w_srgb = (width * 3 + 3) & (~3);	/* w_srgb = offset to the next line in bitmap image */
-	int w_lin = 2 * p + width;			    /* w_lin = width of padded liner RGB image */
-	float dR, dG, dB;
-	int x, y;
-
-	/* check parameters: */
-	if (sRGB == NULL || R == NULL || G == NULL || B == NULL
-		|| height < 0 || width < 0 || p < 0) 
-		return DFX_INVARG;
-
-	/* produce sRGB pixel values: */
-	for (y = 0; y < height; y++) for (x = 0; x < width; x++)
-	{
-		/* compute current sRGB pixel: */
-		sRGB[(height-1-y) * w_srgb + x * 3 + 0] = quant_8bit(to_srgb(B[(p + y) * w_lin + p + x]));
-		sRGB[(height-1-y) * w_srgb + x * 3 + 1] = quant_8bit(to_srgb(G[(p + y) * w_lin + p + x]));
-		sRGB[(height-1-y) * w_srgb + x * 3 + 2] = quant_8bit(to_srgb(R[(p + y) * w_lin + p + x]));
-
-		/* distriibute noise for all rows and columns, except the last ones: */
-		if (y < height - 1 && x < width - 1) 
-		{
-			/* compute quant_8bit error: */
-			dB = B[(p + y) * w_lin + p + x] - to_linear(rec_8bit(sRGB[(height-1-y) * w_srgb + x * 3 + 0]));
-			dG = G[(p + y) * w_lin + p + x] - to_linear(rec_8bit(sRGB[(height-1-y) * w_srgb + x * 3 + 1]));
-			dR = R[(p + y) * w_lin + p + x] - to_linear(rec_8bit(sRGB[(height-1-y) * w_srgb + x * 3 + 2]));
-
-			/* distribute noise using Floyd-Steinberg diffusion filter: */
-			B[(p + y) * w_lin + p + x + 1] += dR * 7.f / 16.f;     /* FS (0,+1) */
-			G[(p + y) * w_lin + p + x + 1] += dG * 7.f / 16.f;
-			R[(p + y) * w_lin + p + x + 1] += dR * 7.f / 16.f;
-			B[(p + y + 1) * w_lin + p + x] += dR * 5.f / 16.f;     /* FS (+1,0) */
-			G[(p + y + 1) * w_lin + p + x] += dG * 5.f / 16.f;
-			R[(p + y + 1) * w_lin + p + x] += dR * 5.f / 16.f;
-			B[(p + y + 1) * w_lin + p + x - 1] += dR * 3.f / 16.f; /* FS (+1,-1) */
-			G[(p + y + 1) * w_lin + p + x - 1] += dG * 3.f / 16.f;
-			R[(p + y + 1) * w_lin + p + x - 1] += dR * 3.f / 16.f;
-			B[(p + y + 1) * w_lin + p + x + 1] += dR * 1.f / 16.f; /* FS (+1,+1) */
-			G[(p + y + 1) * w_lin + p + x + 1] += dG * 1.f / 16.f;
-			R[(p + y + 1) * w_lin + p + x + 1] += dR * 1.f / 16.f;
-		}
-	}
-	/* success: */
-	return DFX_SUCCESS;
-}
-
-/**************
- *
- *  Limunance-related functions:
- *
- *   linear_to_luminance()
- *	 luminance_to_grayscale_rgb()
- */
-
-/*!
-  *  \brief Extracts luminance (XYZ's Y channel) from linear-space RGB image.
-  *
-  *  Conversion to luminance is accomplished by assuming that RGB space uses BT.709 primaries with D65 white.
-  *
-  *  \param[out] Y      - pointer to an luminance channel
-  *  \param[in]  R      - pointer to linear R channel
-  *  \param[in]  G      - pointer to linear G channel
-  *  \param[in]  B      - pointer to linear B channel
-  *  \param[in]  height - image height
-  *  \param[in]  width  - image width
-  *  \param[in]  p      - padding boundary to add to the linear image
-  *
-  *  \returns    DFX_X error codes
-  */
-int linear_to_luminance(float* Y, float* R, float* G, float* B, int width, int height, int p)
-{
-	int h_lin = 2 * p + height;			    /* h_lin = height of padded liner RGB image */
-	int w_lin = 2 * p + width;			    /* w_lin = width of padded liner RGB image */
-	int x, y;
-
-	/* check parameters: */
-	if (Y == NULL || R == NULL || G == NULL || B == NULL
-		|| height < 0 || width < 0 || p < 0)
-		return DFX_INVARG;
-
-	/* compute luminance image: */
-	for (y = 0; y < h_lin; y++) for (x = 0; x < w_lin; x++)
-	{
-		/* downmix to luminance based on BT.709 primaries: */
-		Y[y * w_lin + x] = (float)(0.2126 * R[y * w_lin + x] + 0.7152 * G[y * w_lin + x] + 0.0722 * B[y * w_lin + x]);
-	}
-
-	/* success: */
-	return DFX_SUCCESS;
-}
-
-/*!
-  *  \brief Converts luminance to linear-space gray-scale RGB image.
-  *
-  *  \param[in]  Y      - pointer to an luminance channel
-  *  \param[out] R      - pointer to linear R channel
-  *  \param[out] G      - pointer to linear G channel
-  *  \param[out] B      - pointer to linear B channel
-  *  \param[in]  height - image height
-  *  \param[in]  width  - image width
-  *  \param[in]  p      - padding boundary to add to the linear image
-  */
-int luminance_to_grayscale_image(float* Y, float* R, float* G, float* B, int width, int height, int p)
-{
-	/* check parameters: */
-	if (Y == NULL || R == NULL || G == NULL || B == NULL
-		|| height < 0 || width < 0 || p < 0)
-		return DFX_INVARG;
-
-	/* replicate luminance values to all 3 channels: */
-	copy_plane(Y, R, width, height, p);
-	copy_plane(Y, G, width, height, p);
-	copy_plane(Y, B, width, height, p);
-
-	/* success: */
-	return DFX_SUCCESS;
-}
-
-/* dfx_linear.c -- end of file */
+/* dfx_image.c -- end of file */

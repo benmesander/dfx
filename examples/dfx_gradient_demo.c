@@ -76,8 +76,8 @@ int main()
 
 	/* allocate images */
 	if (alloc_srgb_image(&sRGB, width, height) != DFX_SUCCESS
-		|| alloc_image(&R, &G, &B, width, height, 0) != DFX_SUCCESS
-		|| alloc_plane(&Y, width, height, 0) != DFX_SUCCESS) {
+	 || alloc_image(&R, &G, &B, width, height, 0) != DFX_SUCCESS
+	 || alloc_plane(&Y, width, height, 0) != DFX_SUCCESS) {
 		printf("Error: cannot allocate memory for images\n");
 		/* free allocated memory & exit: */
 		if (sRGB != NULL) free_srgb_image(sRGB);
@@ -97,11 +97,11 @@ int main()
 	luminance_to_grayscale_image(Y, R, G, B, width, height, 0);
 
 	/* convert to srgb and store it as a file: */
-	linear_to_srgb(sRGB, R, G, B, width, height, 0);
+	linear_to_srgb(R, G, B, sRGB, width, height, 0);
 	write_bitmap("linear_gradient.bmp", sRGB, width, height, ppm_x, ppm_y);
 
 	/* convert to srgb by additionally applying error diffusion: */
-	linear_to_srgb_dithered(sRGB, R, G, B, width, height, 0);
+	linear_to_srgb_dithered(R, G, B, sRGB, width, height, 0);
 	write_bitmap("linear_gradient_diffused.bmp", sRGB, width, height, ppm_x, ppm_y);
 
 	/* 
@@ -115,11 +115,11 @@ int main()
 	luminance_to_grayscale_image(Y, R, G, B, width, height, 0);
 
 	/* convert to srgb and store it as a file: */
-	linear_to_srgb(sRGB, R, G, B, width, height, 0);
+	linear_to_srgb(R, G, B, sRGB, width, height, 0);
 	write_bitmap("pow22_gradient.bmp", sRGB, width, height, ppm_x, ppm_y);
 
 	/* convert to srgb by additionally applying error diffusion: */
-	linear_to_srgb_dithered(sRGB, R, G, B, width, height, 0);
+	linear_to_srgb_dithered(R, G, B, sRGB, width, height, 0);
 	write_bitmap("pow22_gradient_diffused.bmp", sRGB, width, height, ppm_x, ppm_y);
 
 	/* free memory and exit: */

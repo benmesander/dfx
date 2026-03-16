@@ -34,7 +34,7 @@
  * 
  *  \param[in,out] pC, pS - pointers to arrays of precomputed transform coefficients
  * 
- *  \returns       DFX_X error codes
+ *  \returns       DFX_X error code
  */
 static int gen_dft_coeffs(float** pC, float** pS, int N)
 {
@@ -83,7 +83,7 @@ static int free_dft_coeffs(float* C, float* S)
  *  \param[in]  width     - image width 
  *  \param[in]  C, S      - precomputed transform coefficients
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
  */
 static int dft_row(float* f, float* reZ, float* imZ, int width, float *C, float *S)
 {
@@ -119,7 +119,7 @@ static int dft_row(float* f, float* reZ, float* imZ, int width, float *C, float 
  *  \param[in]  height    - image width
  *  \param[in]  C, S      - precomputed transform coefficients
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
  */
 static int dft_column(float* reZ, float* imZ, float* reF, float* imF, int width, int height, float* C, float* S)
 {
@@ -158,7 +158,7 @@ static int dft_column(float* reZ, float* imZ, float* reF, float* imF, int width,
  *  \param[in]      width   - image width
  *  \param[in]      p       - padding parameter
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 static int dft_preprocess(float* f, float* g, int width, int height, int p)
 {
@@ -191,7 +191,7 @@ static int dft_preprocess(float* f, float* g, int width, int height, int p)
  *  \param[in]  p          - padding parameter
  *  \param[in]  center_dc  - shift DC to the center of the 2D spectral image 
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
  */
 int dft_plane(float* f, float* reF, float* imF, int width, int height, int p, int center_dc)
 {
@@ -266,7 +266,7 @@ int dft_plane(float* f, float* reF, float* imF, int width, int height, int p, in
  *  \param[in]  width     - image width
  *  \param[in]  p         - padding parameter
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
 */
 int dft_magnitude(float* reF, float* imF, float* magF, int width, int height, int p)
 {
@@ -298,7 +298,7 @@ int dft_magnitude(float* reF, float* imF, float* magF, int width, int height, in
  *  \param[in]  width     - image width
  *  \param[in]  p         - padding parameter
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
 */
 int dft_phase(float* reF, float* imF, float* phaseF, int width, int height, int p)
 {

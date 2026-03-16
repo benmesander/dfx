@@ -1,6 +1,6 @@
 /*!
  *  \file   dfx_resampler.c
- *  \brief  DFX library: image resampling functions
+ *  \brief  Image resampling functions.
  * 
  *  This module implements separable, polyphase-filter-based resampler. 
  *  It follows the design explained in:  
@@ -42,7 +42,7 @@
  *  \param[in]   n    - filter width (max lag in each direction)
  *  \param[in]   fc   - cutoff frequency
  *
- *  \returns     DFX_X error codes
+ *  \returns     DFX_X error code
  */
 static int gen_coeffs(float **p_w, int n, float fc)
 {
@@ -70,7 +70,7 @@ static int gen_coeffs(float **p_w, int n, float fc)
         }
     }
 
-    /* success: */
+    /* return pointer & exit: */
     *p_w = w;
     return DFX_SUCCESS;
 }
@@ -104,7 +104,7 @@ static int gcd(int a, int b)
   *  \param[in]      n    - filter width (max lag in each direction)
   *  \param[in]      gain - gain to apply
   *
-  *  \returns        DFX_X error codes
+  *  \returns        DFX_X error code
   */
 static int apply_gain(float* w, int n, float gain)
 {
@@ -118,7 +118,6 @@ static int apply_gain(float* w, int n, float gain)
     /* apply new gain: */
     for (x = -n; x <= n; x++) w[n + x] *= (float)(gain / s);
 
-    /* success */
     return DFX_SUCCESS;
 }
 
@@ -134,7 +133,7 @@ static int apply_gain(float* w, int n, float gain)
  *  \param[in]      dim_out   - output dimension of an image (width or height)
  *  \param[in]      n         - filter width (max lag in each direction)
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
 {
@@ -179,11 +178,11 @@ static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
          * sub-sample the coefficients to M phases. However, with short filter legths 
          * (and truncated sinc-type filters) this causes some fluctuations of the 
          * filer gains on phase-level. To minimize such effects, I apply gain 
-         * on per-phase level, which unifies gains of all filters. */
+         * on per-phase level, which unifies gains for all filters. */
         apply_gain(&W[phase * (2*n + 1)], n, 1.0f); 
     }
 
-    /* success: */
+    /* return pointer, free temp memory & exit: */
     *p_W = W;
     free_coeffs(w);
     return DFX_SUCCESS;
@@ -199,7 +198,7 @@ static int gen_polyphase_coeffs(float **p_W, int dim_in, int dim_out, int n)
  *  \param[in]  n          - filter length
  *  \param[in]  W          - polyphase filter coefficients
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 static int polyphase_filter_row(float* x, float* y, int width_in, int width_out, int n, float *W)
 {
@@ -227,7 +226,6 @@ static int polyphase_filter_row(float* x, float* y, int width_in, int width_out,
         y[j] = s;
     }
 
-    /* success: */
     return DFX_SUCCESS;
 }
 
@@ -242,7 +240,7 @@ static int polyphase_filter_row(float* x, float* y, int width_in, int width_out,
  *  \param[in]  n          - filter length
  *  \param[in]  W          - polyphase filter coefficients
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 static int polyphase_filter_col(float* x, float* y, int width, int height_in, int height_out, int n, float* W)
 {
@@ -269,7 +267,6 @@ static int polyphase_filter_col(float* x, float* y, int width, int height_in, in
         y[i * width] = s;
     }
 
-    /* success: */
     return DFX_SUCCESS;
 }
 
@@ -289,7 +286,7 @@ static int polyphase_filter_col(float* x, float* y, int width, int height_in, in
  *  \param[in]  p           - padding parameter
  *  \param[in]  n           - filter width (max lag in each direction)
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
  */
 int resample_plane(float* X, float* Y, int width_in, int height_in, int width_out, int height_out, int p, int n)
 {
@@ -352,7 +349,6 @@ int resample_image(float* R_in, float* G_in, float* B_in, float* R_out, float* G
     resample_plane(G_in, G_out, width_in, height_in, width_out, height_out, p, n);
     resample_plane(B_in, B_out, width_in, height_in, width_out, height_out, p, n);
 
-    /* success: */
     return DFX_SUCCESS;
 }
 

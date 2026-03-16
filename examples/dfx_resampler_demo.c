@@ -72,34 +72,24 @@ static void test_resampler(unsigned char* fn_in, char* fn_out, int M, int N, int
 
 	/* allocate working images and planes: */
 	if (alloc_image(&R_in, &G_in, &B_in, width_in, height_in, p) == DFX_SUCCESS
-		&& alloc_image(&R_out, &G_out, &B_out, width_out, height_out, p) == DFX_SUCCESS
-		&& alloc_srgb_image(&sRGB_out, width_out, height_out) == DFX_SUCCESS)
-	{
-		/* perform conversions: */
-
-		/* input RGB -> linear: */
+	 && alloc_image(&R_out, &G_out, &B_out, width_out, height_out, p) == DFX_SUCCESS
+	 && alloc_srgb_image(&sRGB_out, width_out, height_out) == DFX_SUCCESS) {
+		/* perform conversion: */
 		srgb_to_linear(sRGB_in, R_in, G_in, B_in, width_in, height_in, p);
-
-		/* apply resampling: */
 		resample_image(R_in, G_in, B_in, R_out, G_out, B_out, width_in, height_in, width_out, height_out, p, n);
-
-		/* linear to sRGB: */
-		linear_to_srgb(sRGB_out, R_out, G_out, B_out, width_out, height_out, p);
-
-		/* write output bitmap file: */
+		linear_to_srgb(R_out, G_out, B_out, sRGB_out, width_out, height_out, p);
 		write_bitmap(fn_out, sRGB_out, width_out, height_out, ppm_x, ppm_y);
 	}
-	else
-	{
+	else {
 		/* report memory issue: */
 		printf("Cannot allocate memory\n");
 	}
 
 	/* free memory and exit: */
-	free_srgb_image(sRGB_in);
-	free_srgb_image(sRGB_out);
-	free_image(R_in, G_in, B_in);
-	free_image(R_out, G_out, B_out);
+	if (sRGB_in != NULL) free_srgb_image(sRGB_in);
+	if (sRGB_out != NULL) free_srgb_image(sRGB_out);
+	if (R_in != NULL || G_in != NULL || B_in != NULL) free_image(R_in, G_in, B_in);
+	if (R_out != NULL || G_out != NULL || B_out != NULL) free_image(R_out, G_out, B_out);
 	return;
 }
 

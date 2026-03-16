@@ -1,6 +1,6 @@
 /*!
  *  \file   dfx_snr.c
- *  \brief  DFX library: Signal to Noise Ratio (SNR) and related metrics.
+ *  \brief  Signal to Noise Ratio (SNR) and related metrics.
  * 
  *  Copyright (c) 2026 Yuriy A. Reznik
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT

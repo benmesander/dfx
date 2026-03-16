@@ -16,7 +16,7 @@
 #include "dfx.h"
 
 /*!
- *  \brief An example program, showing how to use 2D DFT transform and related functions.
+ *  \brief An example program demostrating how to use 2D DFT transform and related functions.
  */
 int main(int argc, char* argv[])
 {
@@ -42,17 +42,17 @@ int main(int argc, char* argv[])
 
 	/* allocate working images and planes: */
 	if (alloc_srgb_image(&sRGB_out, width, height) != DFX_SUCCESS
-		|| alloc_image(&R, &G, &B, width, height, 0) != DFX_SUCCESS
-		|| alloc_plane(&Y, width, height, 0) != DFX_SUCCESS
-		|| alloc_plane(&reDFT, width, height, 0) != DFX_SUCCESS
-		|| alloc_plane(&imDFT, width, height, 0) != DFX_SUCCESS
-		|| alloc_plane(&magDFT, width, height, 0) != DFX_SUCCESS
-		|| alloc_plane(&phaseDFT, width, height, 0) != DFX_SUCCESS) {
+	 || alloc_image(&R, &G, &B, width, height, 0) != DFX_SUCCESS
+	 || alloc_plane(&Y, width, height, 0) != DFX_SUCCESS
+	 || alloc_plane(&reDFT, width, height, 0) != DFX_SUCCESS
+	 || alloc_plane(&imDFT, width, height, 0) != DFX_SUCCESS
+	 || alloc_plane(&magDFT, width, height, 0) != DFX_SUCCESS
+	 || alloc_plane(&phaseDFT, width, height, 0) != DFX_SUCCESS) {
 		printf("Error: cannot allocate memory for images\n");
-		/* free allocated memory & exit: */
+		/* free memory & exit: */
 		if (sRGB_in != NULL) free_srgb_image(sRGB_in);
 		if (sRGB_out != NULL) free_srgb_image(sRGB_out);
-		if (R != NULL && G != NULL && B != NULL) free_image(R, G, B);
+		if (R != NULL || G != NULL || B != NULL) free_image(R, G, B);
 		if (Y != NULL) free_plane(Y);
 		if (reDFT != NULL) free_plane(reDFT);
 		if (imDFT != NULL) free_plane(imDFT);
@@ -63,10 +63,10 @@ int main(int argc, char* argv[])
 
 	/* Extract luminance: */
 	srgb_to_linear(sRGB_in, R, G, B, width, height, 0);
-	linear_to_luminance(Y, R, G, B, width, height, 0);
+	linear_to_luminance(R, G, B, Y, width, height, 0);
 
 	/* Visualize luminance: */
-	linear_to_srgb(sRGB_out, Y, Y, Y, width, height, 0);
+	linear_to_srgb(Y, Y, Y, sRGB_out, width, height, 0);
 	write_bitmap("dft_demo_luminance.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* compute DFT: */
@@ -77,17 +77,17 @@ int main(int argc, char* argv[])
 	/* Visualize DFT magnitude: */
 	magDC = magDFT[(height/2) * width + width / 2];
 	for (y = 0; y < height; y++) for (x = 0; x < width; x++) magDFT[y * width + x] /= magDC;  /* normalize to fit in [0,1] range */
-	linear_to_srgb(sRGB_out, magDFT, magDFT, magDFT, width, height, 0);
+	linear_to_srgb(magDFT, magDFT, magDFT, sRGB_out, width, height, 0);
 	write_bitmap("dft_demo_magnitude.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* Visualize DFT log-magnitude: */
 	for (y = 0; y < height; y++) for (x = 0; x < width; x++) magDFT[y * width + x] = logf(1+magDFT[y * width + x] * magDC) / logf(magDC);  /* normalize to fit in [0,1] range */
-	linear_to_srgb(sRGB_out, magDFT, magDFT, magDFT, width, height, 0);
+	linear_to_srgb(magDFT, magDFT, magDFT, sRGB_out, width, height, 0);
 	write_bitmap("dft_demo_log_magnitude.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* Visualize DFT phase: */
 	for (y = 0; y < height; y++) for (x = 0; x < width; x++) phaseDFT[y * width + x] = phaseDFT[y * width + x] / ((float)(2.0*M_PI)) + 0.5f; /* normalize to fit in [0,1] range */
-	linear_to_srgb(sRGB_out, phaseDFT, phaseDFT, phaseDFT, width, height, 0);
+	linear_to_srgb(phaseDFT, phaseDFT, phaseDFT, sRGB_out, width, height, 0);
 	write_bitmap("dft_demo_phase.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* free memory and exit: */

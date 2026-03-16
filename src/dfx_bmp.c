@@ -1,6 +1,6 @@
 /*!
  *  \file   dfx_bmp.c
- *  \brief  DFX library: I/O operations with bitmap files and sRGB images.
+ *  \brief  I/O operations with bitmap files and sRGB images.
  * 
  *  This module implements reading and writing images from/to bitmap (.bmp) files. 
  *  The implementation is limited to 3-channel, 24-bit packed sRGB images. 
@@ -65,14 +65,20 @@ static unsigned int srgb_image_size(int width, int height)
  *
  *  \param[in,out]  p_srgb   - pointer to pointer to the allocated sRGB image
  *
- *  \return     DFX_X error codes
+ *  \return     DFX_X error code
  */
 int alloc_srgb_image(unsigned char** p_srgb, int width, int height)
 {
 	int size = srgb_image_size(width, height);
 	unsigned char* srgb = NULL;
+
+	/* check parameters: */
 	if (p_srgb == NULL || width < 0 || height < 0) return DFX_INVARG;
+	
+	/* allocate new image: */
 	if ((srgb = (unsigned char*)malloc(size)) == NULL) return DFX_NOMEM;
+	
+	/* return pointer & exit: */
 	*p_srgb = srgb;
 	return DFX_SUCCESS;
 }
@@ -82,7 +88,7 @@ int alloc_srgb_image(unsigned char** p_srgb, int width, int height)
  *
  *  \param[in]  srgb   - pointer to the allocated sRGB image
  *
- *  \return     DFX_X error codes
+ *  \return     DFX_X error code
  */
 int free_srgb_image(unsigned char* srgb)
 {
@@ -105,7 +111,7 @@ int free_srgb_image(unsigned char* srgb)
  *  \param[in,out]  p_ppm_x  - pointer to a variable storing pixel density (pixels per meter) in horisontal direction
  *  \param[in,out]  p_ppm_y  - pointer to a variable storing pixel density (pixels per meter) in vertical direction
  *
- *  \return         DFX_X error codes
+ *  \return         DFX_X error code
  */
 int read_bitmap(char* filename, unsigned char** p_srgb, int* p_width, int* p_height, int* p_ppm_x, int* p_ppm_y)
 {
@@ -135,9 +141,9 @@ int read_bitmap(char* filename, unsigned char** p_srgb, int* p_width, int* p_hei
 
 	/* check if we can work with this file:  */
 	if (hdr.bfOffBits != sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER)
-		|| bihdr.biCompression != BI_RGB || bihdr.biBitCount != 24 /* we only support 24-bit RGB files now */
-		|| bihdr.biWidth < 8 || bihdr.biHeight < 8 || bihdr.biWidth > 32768 || bihdr.biHeight > 32768 
-		|| (bihdr.biSizeImage != 0 && bihdr.biSizeImage < size)) {
+	 || bihdr.biCompression != BI_RGB || bihdr.biBitCount != 24 /* we only support 24-bit RGB files now */
+	 || bihdr.biWidth < 8 || bihdr.biHeight < 8 || bihdr.biWidth > 32768 || bihdr.biHeight > 32768 
+	 || (bihdr.biSizeImage != 0 && bihdr.biSizeImage < size)) {
 		fclose(fp);
 		return DFX_NOTSUP;
 	}
@@ -179,7 +185,7 @@ int read_bitmap(char* filename, unsigned char** p_srgb, int* p_width, int* p_hei
  *  \param[in]  p_ppm_x  - pixel density (pixels per meter) in horisontal direction
  *  \param[in]  p_ppm_y  - pixel density (pixels per meter) in vertical direction
  *
- *  \return     DFX_X error codes
+ *  \return     DFX_X error code
  */
 int write_bitmap(char* filename, unsigned char* srgb, int width, int height, int ppm_x, int ppm_y)
 {

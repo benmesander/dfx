@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 	srgb_to_linear(sRGB_in, R, G, B, width, height, 0);
 	
 	/* Extract luminance: */
-	linear_to_luminance(Y, R, G, B, width, height, 0);
+	linear_to_luminance(R, G, B, Y, width, height, 0);
 
 	/* Produce zero-plane: */
 	zero_plane(Z, width, height, 0);
@@ -66,25 +66,25 @@ int main(int argc, char *argv[])
 	/*
 	 * Produce R-channel image:
 	 */
-	linear_to_srgb(sRGB_out, R, Z, Z, width, height, 0);
+	linear_to_srgb(R, Z, Z, sRGB_out, width, height, 0);
 	write_bitmap("red.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/*
 	 * Produce G-channel image:
 	 */
-	linear_to_srgb(sRGB_out, Z, G, Z, width, height, 0);
+	linear_to_srgb(Z, G, Z, sRGB_out, width, height, 0);
 	write_bitmap("green.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/*
 	 * Produce B-channel image:
 	 */
-	linear_to_srgb(sRGB_out, Z, Z, B, width, height, 0);
+	linear_to_srgb(Z, Z, B, sRGB_out, width, height, 0);
 	write_bitmap("blue.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/*
 	 * Produce gray-scale image:
 	 */
-	linear_to_srgb(sRGB_out, Y, Y, Y, width, height, 0);
+	linear_to_srgb(Y, Y, Y, sRGB_out, width, height, 0);
 	write_bitmap("grayscale.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* free memory and exit: */

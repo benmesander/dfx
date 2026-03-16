@@ -23,13 +23,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\dfx_bmp.c" />
+    <ClCompile Include="..\src\dfx_colors.c" />
     <ClCompile Include="..\src\dfx_dct.c" />
     <ClCompile Include="..\src\dfx_dft.c" />
     <ClCompile Include="..\src\dfx_fft.c" />
     <ClCompile Include="..\src\dfx_filter.c" />
-    <ClCompile Include="..\src\dfx_image.c" />
+    <ClCompile Include="..\src\dfx_srgb.c" />
     <ClCompile Include="..\src\dfx_resampler.c" />
     <ClCompile Include="..\src\dfx_snr.c" />
+    <ClCompile Include="..\src\dfx_image.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

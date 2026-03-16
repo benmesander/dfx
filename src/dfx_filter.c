@@ -1,12 +1,11 @@
 /*!
  *  \file   dfx_filter.c
- *  \brief  DFX library: linear filtering operations
+ *  \brief  Image filtering operations.
  *
- *  This module shows how to implement separable linear filters with symmetric kernels.  
- *  The implementation is very simple, but this is not a production code.  
- *  One would want to remove mallocs and SIMD optimize it to turn it into 
- *  something workable in production context. 
-
+ *  This module shows how to implement separable linear filters with symmetric kernels.
+ *  Filtering of images is performed in linear RGB space, with identical kernels applied 
+ *  separately for each channel.
+ *
  *  Copyright (c) 2026 Yuriy A. Reznik
  *  Licensed under the MIT License: https://opensource.org/licenses/MIT
  *
@@ -31,12 +30,15 @@
 /*!
  *  \brief Generate an array of filter coefficients.
  *
+ *  This function generates an array of filter coefficients for a specified low-pass 
+ *  filter type and its cutoff frequency and length.
+ * 
  *  \param[in,out]  p_w  - pointer to a pointer to a buffer for filter coefficients 
- *  \param[in]      n    - filter width (max lag in each direction)
+ *  \param[in]      n    - filter half-length (max lag in each direction)
  *  \param[in]      t    - filter kernel type (see FILT_X constants)
  *  \param[in]      fc   - cutoff frequency
  *
- *  \returns        DFX_X error codes
+ *  \returns        DFX_X error code
  */
 static int gen_coeffs(float** p_w, int n, int t, float fc)
 {
@@ -119,7 +121,7 @@ static int free_coeffs(float* w)
  *  \param[in]  n      - filter width
  *  \param[in]  w      - filter coefficients
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
  */
 static int filter_row(float* x, float* y, int width, int n, float* w)
 {
@@ -149,7 +151,7 @@ static int filter_row(float* x, float* y, int width, int n, float* w)
  *  \param[in]  n      - filter width
  *  \param[in]  w      - filter coefficients
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
  */
 static int filter_col(float* x, float* y, int width, int height, int n, float* w)
 {
@@ -185,7 +187,7 @@ static int filter_col(float* x, float* y, int width, int height, int n, float* w
  *  \param[in]  t       - filter kernel type (see FILT_X constants)
  *  \param[in]  fc      - cutoff frequency
  *
- *  \returns    DFX_X error codes
+ *  \returns    DFX_X error code
  */
 int filter_plane(float* X, float* Y, int width, int height, int p, int n, int t, float fc)
 {

@@ -92,7 +92,7 @@ static int test_reconstruction(float* R_ref, float* G_ref, float* B_ref, float* 
 	scale_image(R_out, G_out, B_out, R_out, G_out, B_out, width, height, p, 4.0);
 
 	/* produce bitmap file: */
-	linear_to_srgb(sRGB_out, R_out, G_out, B_out, width, height, p);
+	linear_to_srgb(R_out, G_out, B_out, sRGB_out, width, height, p);
 	write_bitmap(bmp_fn, sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* compute MSE, SNR: */
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 		printf("Error: filter width cannot exceed padding of an image\n");
 		return 1;
 	}
-	if (fc <= 0 || fc > 1.0) {
+	if (fc <= 0 || fc > 0.5) {
 		printf("Error: incorrect value of cutoff frequency parameter\n");
 		return 1;
 	}
@@ -163,18 +163,18 @@ int main(int argc, char* argv[])
 
 	/* convert to linear: */
 	srgb_to_linear(sRGB_in, R_in, G_in, B_in, width, height, p);
-	linear_to_srgb(sRGB_out, R_in, G_in, B_in, width, height, p);
+	linear_to_srgb(R_in, G_in, B_in, sRGB_out, width, height, p);
 	write_bitmap("original.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* produce a low-pass version (20-th order sinc filter): */
 	filter_image(R_in, G_in, B_in, R_lp, G_lp, B_lp, width, height, p, 20, FILT_SINC, fc);
 	pad_image(R_lp, G_lp, B_lp, width, height, p, PAD_REFLECT);
-	linear_to_srgb(sRGB_out, R_lp, G_lp, B_lp, width, height, p);
+	linear_to_srgb(R_lp, G_lp, B_lp, sRGB_out, width, height, p);
 	write_bitmap("lowpass.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* subsample original image: */
 	subsample_image(R_in, G_in, B_in, R_ss, G_ss, B_ss, width, height, p);
-	linear_to_srgb(sRGB_out, R_ss, G_ss, B_ss, width, height, p);
+	linear_to_srgb(R_ss, G_ss, B_ss, sRGB_out, width, height, p);
 	write_bitmap("original_subsampled.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* run reconstruction tests: */
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
 
 	/* subsample lowpass image: */
 	subsample_image(R_lp, G_lp, B_lp, R_ss, G_ss, B_ss, width, height, p);
-	linear_to_srgb(sRGB_out, R_ss, G_ss, B_ss, width, height, p);
+	linear_to_srgb(R_ss, G_ss, B_ss, sRGB_out, width, height, p);
 	write_bitmap("lowpass_subsampled.bmp", sRGB_out, width, height, ppm_x, ppm_y);
 
 	/* run reconstruction tests: */
