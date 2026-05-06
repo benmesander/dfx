@@ -321,7 +321,7 @@ int subtract_planes(float* X_1, float* X_2, float* X_out, int width, int height,
 
 	/* subtract two images: */
 	for (y = 0; y < height_p; y++) for (x = 0; x < width_p; x++)
-		X_out[y * width_p + x] = X_1[y * width_p + x] + X_2[y * width_p + x];
+		X_out[y * width_p + x] = X_1[y * width_p + x] - X_2[y * width_p + x];
 
 	return DFX_SUCCESS;
 }
