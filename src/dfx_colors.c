@@ -66,7 +66,7 @@ static void gen_uv_prim()
 		for (i = 0; i < N_COLORS; i++) for (j = 0; j <= 3; j++) {
 			/* pull (x,y) pair: */
 			x = xy_prim[i][j].x;
-			y = xy_prim[j][j].y;
+			y = xy_prim[i][j].y;
 			/* convert (x,y) to (u',v')s: */
 			uv_prim[i][j].u = 4.f * x / (-2.f * x + 12.f * y + 3.f);
 			uv_prim[i][j].v = 9.f * y / (-2.f * x + 12.f * y + 3.f);
@@ -293,7 +293,7 @@ static int check_rgb_range(float* R, float* G, float* B, int width, int height, 
 	/* compute ranges of RGB values in each plane: */
 	if (range(R, width, height, p, &R_min, &R_max) != DFX_SUCCESS) return DFX_INVARG;
 	if (range(G, width, height, p, &G_min, &G_max) != DFX_SUCCESS) return DFX_INVARG;
-	if (range(G, width, height, p, &B_min, &B_max) != DFX_SUCCESS) return DFX_INVARG;
+	if (range(B, width, height, p, &B_min, &B_max) != DFX_SUCCESS) return DFX_INVARG;
 
 	/* check ranges: */
 	if (R_min < 0.f || R_max > 1.0f) return DFX_INVRANGE;
